@@ -1,32 +1,22 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKERHUB_CREDENTIALS = credentials('dockerhub_credentials')
-    }
-
     stages {
-        stage('Clone Repository') {
+        stage('Clone Repo') {
             steps {
-                git branch: 'main',
-                    url: 'https://github.com/Vibinbabup/docker-with-jenkins.git'
+                git branch: 'main', url: 'https://github.com/vibin0104/docker-with-jenkins.git'
             }
         }
 
         stage('Build Docker Image') {
             steps {
-                sh "docker build -t ${DOCKERHUB_CREDENTIALS_USR}/docker-with-jenkins:${BUILD_NUMBER} ."
+                sh 'docker build -t vibin0104/myapp .'
             }
         }
 
-        stage('Push Docker Image') {
+        stage('Run Docker Container') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh """
-                        echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin
-                        docker push ${DOCKER_USER}/docker-with-jenkins:${BUILD_NUMBER}
-                    """
-                }
+                sh 'docker run -d -p 8080:8080 --name myapp-container vibin0104/myapp'
             }
         }
     }
@@ -34,8 +24,29 @@ pipeline {
     post {
         success {
             emailext(
+                to: 'your-email@gmail.com',
                 subject: "✅ SUCCESS: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
-                body: """<p>Good news!</p>
-                         <p>Your Jenkins build for <b>${env.JOB_NAME}</b> was successful.</p>
-                         <p>Check details: <a href='${env.BUILD_URL}'>Build Logs</a></p>""",
-                to: "re
+                body: """\
+Good news! The build succeeded.
+
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+URL: ${env.BUILD_URL}
+"""
+            )
+        }
+        failure {
+            emailext(
+                to: 'your-email@gmail.com',
+                subject: "❌ FAILURE: ${env.JOB_NAME} #${env.BUILD_NUMBER}",
+                body: """\
+Oops! The build failed.
+
+Job: ${env.JOB_NAME}
+Build Number: ${env.BUILD_NUMBER}
+URL: ${env.BUILD_URL}
+"""
+            )
+        }
+    }
+}
