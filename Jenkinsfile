@@ -5,14 +5,23 @@ pipeline {
         stage('Clone Repo') {
             steps {
                 git branch: 'main',
-                    credentialsId: 'github-token',
-                    url: 'https://github.com/vibin0104/docker-with-jenkins.git'
+                    url: 'https://github.com/Vibinbabup/docker-with-jenkins.git',
+                    credentialsId: 'github-token'
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 sh 'docker build -t vibin0104/myapp .'
+            }
+        }
+
+        stage('Push Docker Image') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
+                    sh 'docker push vibin0104/myapp'
+                }
             }
         }
 
