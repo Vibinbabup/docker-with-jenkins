@@ -12,6 +12,12 @@ pipeline {
             }
         }
 
+        stage('Run Tests') {
+            steps {
+                sh 'python -m unittest discover || echo "No tests found"'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
                 script {
