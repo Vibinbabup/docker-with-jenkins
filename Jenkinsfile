@@ -1,25 +1,35 @@
 pipeline {
     agent any
 
+    environment {
+        IMAGE_NAME = "vibin0104/docker-with-jenkins:latest"
+    }
+
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', url: 'https://github.com/Vibinbabup/docker-with-jenkins.git'
+                checkout scm
             }
         }
 
         stage('Build Docker Image') {
             steps {
                 script {
-                    dockerImage = docker.build("vibinbabup/docker-with-jenkins")
+                    sh "docker build -t ${IMAGE_NAME} ."
                 }
             }
         }
 
-        stage('Login to DockerHub') {
+        stage('Login to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                script {
+                    withCredentials([usernamePassword(
+                        credentialsId: 'dockerhub_credentials',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )]) {
+                        sh "echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin"
+                    }
                 }
             }
         }
@@ -27,7 +37,7 @@ pipeline {
         stage('Push Docker Image') {
             steps {
                 script {
-                    dockerImage.push("latest")
+                    sh "docker push ${IMAGE_NAME}"
                 }
             }
         }
@@ -38,7 +48,7 @@ pipeline {
             echo 'Build failed — Docker image will not be pushed.'
         }
         success {
-            echo 'Build succeeded — Docker image pushed to DockerHub.'
+            echo 'Build succeeded — Docker image pushed to Docker Hub.'
         }
     }
 }
