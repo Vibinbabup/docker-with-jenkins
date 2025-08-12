@@ -49,3 +49,8 @@ pipeline {
         failure {
             echo 'Build failed — Docker image will not be pushed.'
         }
+        success {
+            echo 'Build succeeded — Docker image pushed to Docker Hub.'
+        }
+    }
+}
