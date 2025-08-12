@@ -12,22 +12,23 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                sh 'docker build -t vibin0104/myapp .'
+                sh 'docker build -t vibin0104/myapp:latest .'
             }
         }
 
         stage('Push Docker Image') {
             steps {
-                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
-                    sh 'echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin'
-                    sh 'docker push vibin0104/myapp'
+                withCredentials([usernamePassword(credentialsId: 'dockerhub_credentials', usernameVariable: 'DOCKER_USER', passwordVariable: 'DOCKER_PASS')]) {
+                    sh 'docker login -u "$DOCKER_USER" -p "$DOCKER_PASS"'
+                    sh 'docker push vibin0104/myapp:latest'
                 }
             }
         }
 
         stage('Run Docker Container') {
             steps {
-                sh 'docker run -d -p 8080:8080 --name myapp-container vibin0104/myapp'
+                sh 'docker rm -f myapp-container || true'
+                sh 'docker run -d -p 8080:8080 --name myapp-container vibin0104/myapp:latest'
             }
         }
     }
