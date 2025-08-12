@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKERHUB_USER = credentials('dockerhub-username') // Jenkins credential ID
-        IMAGE_NAME = "vibinbabup/docker-with-jenkins"
+        DOCKER_CREDS = credentials('dockerhub_credentials')
+        IMAGE_NAME = "vibin0104/jenkins-demo:latest"
     }
 
     stages {
@@ -13,27 +13,34 @@ pipeline {
             }
         }
 
+        stage('Install Dependencies & Run Tests') {
+            steps {
+                sh 'pip install -r requirements.txt'
+                sh 'python -m unittest discover'
+            }
+        }
+
         stage('Build Docker Image') {
             steps {
-                script {
-                    sh "docker build -t ${IMAGE_NAME}:latest ."
-                }
+                sh "docker build -t ${IMAGE_NAME} ."
             }
         }
 
         stage('Login to DockerHub') {
             steps {
-                script {
-                    sh "echo ${DOCKERHUB_USER_PSW} | docker login -u ${DOCKERHUB_USER_USR} --password-stdin"
-                }
+                sh "echo ${DOCKER_CREDS_PSW} | docker login -u ${DOCKER_CREDS_USR} --password-stdin"
             }
         }
 
         stage('Push to DockerHub') {
             steps {
-                script {
-                    sh "docker push ${IMAGE_NAME}:latest"
-                }
+                sh "docker push ${IMAGE_NAME}"
+            }
+        }
+
+        stage('Cleanup') {
+            steps {
+                sh "docker rmi ${IMAGE_NAME}"
             }
         }
     }
