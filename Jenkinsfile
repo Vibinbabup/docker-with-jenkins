@@ -4,7 +4,9 @@ pipeline {
     stages {
         stage('Clone Repo') {
             steps {
-                git branch: 'main', url: 'https://github.com/vibin0104/docker-with-jenkins.git'
+                git branch: 'main',
+                    credentialsId: 'github-token',
+                    url: 'https://github.com/vibin0104/docker-with-jenkins.git'
             }
         }
 
