@@ -14,7 +14,7 @@ pipeline {
 
         stage('Run Tests') {
             steps {
-                sh 'python -m unittest discover || echo "No tests found"'
+                sh 'python3 -m unittest discover || echo "No tests found"'
             }
         }
 
